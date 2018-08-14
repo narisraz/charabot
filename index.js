@@ -14,6 +14,10 @@ const
 
 app.listen(process.env.PORT || 1337, () => console.log('webhook is listening'));
 
+setInterval(function() {
+    http.get("http://nachara.herokuapp.com");
+}, 300000);
+
 app.post('/webhook', (req, res) => {  
   let body = req.body;
   if (body.object === 'page') {
