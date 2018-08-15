@@ -9,6 +9,10 @@ const
   bodyParser = require('body-parser'),
   app = express().use(bodyParser.json()), // creates express http server
 
+  greeting = require('./messenger_profile/greeting.js'),  
+  getStarted = require('./messenger_profile/getStarted.js'),  
+  menu = require('./messenger_profile/persistentMenu.js'),
+
   PAGE_ACCESS_TOKEN = process.env.access_token,
   VERIFY_TOKEN = process.env.verify_token;
 
@@ -17,6 +21,11 @@ app.listen(process.env.PORT || 1337, () => console.log('webhook is listening'));
 app.post('/webhook', (req, res) => {  
   let body = req.body;
   if (body.object === 'page') {
+
+    greeting.greet();
+    getStarted.start();
+    menu.persistentMenu();
+    
     body.entry.forEach(function(entry) {
       let webhook_event = entry.messaging[0];
       console.log(webhook_event);
@@ -56,7 +65,7 @@ app.get('/webhook', (req, res) => {
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
       
       // Respond with 200 OK and challenge token from the request
-      console.log('WEBHOOK_VERIFIED');
+      console.log('WEBHOOK_VERIFIED');      
       res.status(200).send(challenge);
     
     } else {
@@ -110,10 +119,9 @@ function handlePostback(sender_psid, received_postback) {
   let response;
   let payload = received_postback.payload;
 
-  if (payload === 'yes') {
-    response = { "text": "Thanks!" }
-  } else if (payload === 'no') {
-    response = { "text": "Oops, try sending another image." }
+  if (payload === 'GET_STARTED_PAYLOAD') {
+    getUserProfile(sender_psid);
+    return;
   }
   callSendAPI(sender_psid, response);
 }
@@ -147,8 +155,9 @@ function getUserProfile(sender_psid) {
     "method": "GET"
   }, (err, res, body) => {
     if (!err) {
-      console.log(body);
+      return body;
     } else {
+      console.error('userProfile error');
       console.error(err);
     }
   }); 
