@@ -4,7 +4,7 @@
   "description": "e commerce chat bot",
   "main": "index.js",
   "scripts": {
-	"start" : "node index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "naris razafimahatratra",
@@ -14,7 +14,10 @@
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
     "firebase-functions": "^2.0.4",
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "youtube-dl": "^1.12.2",
+    "youtube-search": "^1.1.1",
+    "ytdl-core": "^0.24.0"
   },
   "devDependencies": {
     "babel-preset-env": "^1.7.0",

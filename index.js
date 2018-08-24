@@ -9,6 +9,9 @@ const
   bodyParser = require('body-parser'),
   app = express().use(bodyParser.json()), // creates express http server
 
+  ytdl = require('ytdl-core'),
+  search = require('youtube-search'),
+
   PAGE_ACCESS_TOKEN = process.env.access_token,
   VERIFY_TOKEN = process.env.verify_token;
 
@@ -70,44 +73,46 @@ app.get('/webhook', (req, res) => {
   }
 });
 
-function handleMessage(sender_psid, received_message) {
-  let response;
-  
-  // Checks if the message contains text
-  if (received_message.text) {    
-    response = {
-      "text": `You sent the message: "${received_message.text}". Now send me an attachment!`
-    }
-  } else if (received_message.attachments) {
-    let attachment_url = received_message.attachments[0].payload.url;
-    response = {
-      "attachment": {
-        "type": "template",
-        "payload": {
-          "template_type": "generic",
-          "elements": [{
-            "title": "Is this the right picture?",
-            "subtitle": "Tap a button to answer.",
-            "image_url": attachment_url,
-            "buttons": [
-              {
-                "type": "postback",
-                "title": "Yes!",
-                "payload": "yes",
-              },
-              {
-                "type": "postback",
-                "title": "No!",
-                "payload": "no",
-              }
-            ],
-          }]
+function handleMessage(sender_psid, received_message) {  
+  var opts = {
+    maxResults: 10,
+    key: process.env.google_api_key
+  };
+
+  search(received_message.text, opts, function(err, results) {
+    if(err) return console.log(err);
+    
+    var responseElements = results.map(video => {
+      return {
+        "title": video.title,
+        "subtitle": video.description,
+        "buttons": [
+          {
+            "type": "postback",
+            "title": "Upload!",
+            "payload": "yes",
+          },
+          {
+            "type": "postback",
+            "title": "Open!",
+            "payload": "no",
+          }
+        ]
+      };
+    });
+    if (responseElements)
+      var response = {
+        "attachment": {
+          "type": "template",
+          "payload": {
+            "template_type": "generic",
+            "elements": responseElements
+          }
         }
       }
-    }
-  } 
-  
-  callSendAPI(sender_psid, response);    
+    if (response)
+      callSendAPI(sender_psid, response);
+  }); 
 }
 
 function handlePostback(sender_psid, received_postback) {
